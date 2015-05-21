@@ -1,0 +1,5 @@
+name = Queen Attack
+description = Finds if the queen can attack the opponent based on their positions.
+package = Epicodus Examples
+core = 7.x
+files[] = queen_attack.module

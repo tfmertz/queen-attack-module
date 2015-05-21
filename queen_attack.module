@@ -1,0 +1,100 @@
+<?php
+
+function queen_attack_menu() {
+    $items['queen-attack-form'] = array(
+        'title' => 'Queen Attack',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('queen_attack_form'),
+        'access callback' => TRUE,
+        'type' => MENU_NORMAL_ITEM,
+    );
+    $items['queen-attack-success'] = array(
+        'title' => 'Queen Attack Results',
+        'page callback' => 'queen_attack_results',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+
+    return $items;
+}
+
+function queen_attack_form() {
+    $form['queenX'] = array(
+        '#title' => 'Queen X',
+        '#type' => 'textfield',
+        '#description' => t('Enter the queen\'s X coordinate'),
+        '#element_validate' => array('element_validate_integer_positive', 'element_validate_attack_range'),
+        '#required' => TRUE,
+    );
+    $form['queenY'] = array(
+        '#title' => 'Queen Y',
+        '#type' => 'textfield',
+        '#description' => t('Enter the queen\'s Y coordinate'),
+        '#element_validate' => array('element_validate_integer_positive', 'element_validate_attack_range'),
+        '#required' => TRUE,
+    );
+    $form['opponentX'] = array(
+        '#title' => 'Opponent X',
+        '#type' => 'textfield',
+        '#description' => t('Enter the opponent\'s X coordinate'),
+        '#element_validate' => array('element_validate_integer_positive', 'element_validate_attack_range'),
+        '#required' => TRUE,
+    );
+    $form['opponentY'] = array(
+        '#title' => 'Opponent Y',
+        '#type' => 'textfield',
+        '#description' => t('Enter the opponent\'s Y coordinate'),
+        '#element_validate' => array('element_validate_integer_positive', 'element_validate_attack_range'),
+        '#required' => TRUE,
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Go',
+    );
+
+    return $form;
+}
+
+function queen_attack_form_submit($form, &$form_state) {
+    $arr[0] = $form_state['values']['queenX'];
+    $arr[1] = $form_state['values']['queenY'];
+    $arr[2] = $form_state['values']['opponentX'];
+    $arr[3] = $form_state['values']['opponentY'];
+
+    $_SESSION['queen_attack_values'] = $arr;
+
+    $form_state['redirect'] = 'queen-attack-success';
+}
+
+function queen_attack($queenMove, $opponentMove) {
+    if (($queenMove[0] === $opponentMove[0] || $queenMove[1] === $opponentMove[1])) {
+        return true;
+    } elseif(abs(($queenMove[0] - $opponentMove[0])) === abs(($queenMove[1] - $opponentMove[1]))) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function queen_attack_results() {
+    $input = $_SESSION['queen_attack_values'];
+
+    $result = queen_attack([$input[0], $input[1]], [$input[2], $input[3]]);
+
+    $output = "<p>Queen X: $input[0]</p><p>Queen Y: $input[1]</p><p>Opponent X: $input[2]</p><p>Opponent Y: $input[3]</p>";
+
+    if($result) {
+        $output .= "<p>The queen is able to attack the opponent.</p>";
+    }
+    else {
+        $output .= "<p>The queen cannot reach the opponent.</p>";
+    }
+
+    return $output;
+}
+
+function element_validate_attack_range($element) {
+    if ($element['#value'] > 8 ) {
+        form_error($element, t('Please enter a coordinate between 1 and 8'));
+    }
+}
